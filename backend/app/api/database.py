@@ -7,3 +7,9 @@ engine=create_engine(db_url)
 SessionLocal=sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base=declarative_base()     # ORM models
 
+def get_db():
+    db=SessionLocal()
+    try:
+        yield db
+    except:
+        db.close()
