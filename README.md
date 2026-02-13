@@ -157,3 +157,108 @@ Vous n'êtes **pas obligé** de faire les 4 routes parfaitement pour le 16 mars.
 Si vous manquez de temps, la **Route 1** (Le Matching) et la **Route 3** (Le Chatbot) constituent déjà un projet d'ingénierie IA extrêmement solide et complet. La Route 4 est la "cerise sur le gâteau".
 
 Voulez-vous qu'on choisisse ensemble quelles routes vous allez officiellement intégrer dans votre MVP (Produit Minimum Viable) pour garantir la réussite de votre présentation ?
+
+## schéma de base de données
+👤 1. Le Socle (Utilisateur & Données de base)
+
+Table : users (Le candidat)
+
+    id (UUID, Primary Key)
+
+    email (String, Unique)
+
+    name (String)
+
+    created_at (Timestamp)
+
+Table : resumes (Le CV uploadé)
+
+    id (UUID, Primary Key)
+
+    user_id (UUID, Foreign Key)
+
+    file_path (String) -> Le chemin local où le PDF est sauvegardé.
+
+    raw_text (Text) -> Le texte brut extrait du PDF.
+
+    uploaded_at (Timestamp)
+
+Table : job_targets (Les offres d'emploi ciblées)
+
+    id (UUID, Primary Key)
+
+    user_id (UUID, Foreign Key)
+
+    title (String) -> Ex: "Développeur Python Junior"
+
+    description_text (Text) -> Le texte collé par l'utilisateur.
+
+    created_at (Timestamp)
+
+🛣️ 2. Tables pour les Fonctionnalités (Les 4 Routes)
+
+Table : match_results (Route 1 : L'Audit de Carrière)
+
+    id (UUID, Primary Key)
+
+    resume_id (UUID, Foreign Key)
+
+    job_target_id (UUID, Foreign Key)
+
+    overall_score (Float) -> Ex: 78.5 (%)
+
+    missing_skills (JSON) -> Ex: ["Docker", "CI/CD", "AWS"]
+
+    analyzed_at (Timestamp)
+
+Table : cover_letters (Route 2 : L'Assistant Candidature)
+
+    id (UUID, Primary Key)
+
+    resume_id (UUID, Foreign Key)
+
+    job_target_id (UUID, Foreign Key)
+
+    generated_content (Text) -> La lettre rédigée par le LLM.
+
+    created_at (Timestamp)
+
+Table : interview_sessions (Routes 3 & 4 : Le Simulateur global)
+
+    id (UUID, Primary Key)
+
+    user_id (UUID, Foreign Key)
+
+    job_target_id (UUID, Foreign Key) -> Pour savoir sur quel poste l'IA doit l'interroger.
+
+    status (String) -> Ex: "in_progress", "completed"
+
+    started_at (Timestamp)
+
+    ended_at (Timestamp, Nullable)
+
+Table : interview_messages (Route 3 : Historique du Chatbot)
+
+    id (UUID, Primary Key)
+
+    session_id (UUID, Foreign Key)
+
+    sender (String) -> Doit être 'user' (candidat) ou 'ai' (recruteur).
+
+    content (Text) -> Le texte du message.
+
+    created_at (Timestamp)
+
+Table : soft_skills_evaluations (Route 4 : Le rapport final DeepFace/Vidéo)
+
+    id (UUID, Primary Key)
+
+    session_id (UUID, Foreign Key)
+
+    stress_score (Float) -> Calculé via DeepFace.
+
+    confidence_score (Float)
+
+    communication_score (Float) -> Calculé par le LLM sur la base des tics de langage.
+
+    emotional_timeline (JSON) -> Ex: [{"time": "00:10", "emotion": "fear"}, ...] (Utile pour tracer un graphique sur le front-end à la fin).
