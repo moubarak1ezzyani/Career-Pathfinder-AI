@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 # variables
 load_dotenv()
 "postgresql://user:password@localhost:5432/mydb"
-db_user=os.getenv("db_user_env")
-db_password=os.getenv("db_password_env")
-db_host=os.getenv("db_host_env")
-db_port=os.getenv("db_port_env")
-db_name=os.getenv("db_name_env")
-db_url=f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+DB_USER=os.getenv("DB_USER_env")
+DB_PASSWORD=os.getenv("DB_PASSWORD_env")
+DB_HOST=os.getenv("DB_HOST_env")
+DB_PORT=os.getenv("DB_PORT_env")
+DB_NAME=os.getenv("DB_NAME_env")
+DB_URL=f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
