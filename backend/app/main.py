@@ -1,23 +1,32 @@
-# from app.core import config 
-from fastapi import FastAPI
+# files imports
+from api.database import my_Base, engine
+from api.schemas import password, TokenData
+from core.config import SECRET_KEY, ALGO, TOKEN_EXPIRE
+
+# Libs
+from fastapi import FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from passlib.context import CryptContext
 from pydantic import BaseModel
-# test
+import jwt
+from typing import Optional
+from datetime import time, timedelta, datetime, UTC, minutes
+
+
+    
+
+
+
+# ------------------------------------
+my_Base.metada.create_all(bind=engine)
 my_app = FastAPI()
+
+# check app
 @my_app.get("/")
 def read_root():
     return {"message":"Hello World"}
 
-@my_app.get("/items/{item_id}")
-def read_item_id(item_id:int, q:str|None=None):
-    return {"item_id" : item_id, "q" :q}
 
-class Item(BaseModel):
-    name : str
-    price : float
-    is_offer : bool | None = None
-
-@my_app.put("/items/{item_id}")
-def update_item(item_id : int, item: Item):
-    return {"item_id": item_id, "item_name" : item.name}
-# database
-# engine==
+@my_app.post("/Register")
+def sign_up():
+    pass
