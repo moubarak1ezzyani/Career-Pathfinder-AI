@@ -1,11 +1,11 @@
-from app.core.config import db_url
+from app.core.config import DB_URL
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # db config
-engine=create_engine(db_url)
+engine=create_engine(DB_URL)
 SessionLocal=sessionmaker(bind=engine, autocommit=False, autoflush=False)
-Base=declarative_base()     # ORM models
+my_Base=declarative_base()     # ORM models
 
 def get_db():
     db=SessionLocal()
