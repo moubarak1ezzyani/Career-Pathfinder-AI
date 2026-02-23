@@ -1,14 +1,16 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Datetime, JSON
-from api.database import Base
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Datetime, JSON, Boolean
+from api.database import my_Base
 import datetime
 from sqlalchemy.sql import func
 
-class Candidat(Base):
+class Candidat(my_Base):
     __tablename__="candidats"
     id=Column(Integer, primary_key=True, index=True)
     email=Column(String, unique=True, index=True)
     name=Column(String, index=True)
     created_at=Column(DateTime, server_default=func.now(), index=True)
+    hashed_pwd=Column(String, nullable=True)
+    is_active=Column(Boolean, default=True)
     # hash_cv=Column(String)      # Stores the reference/hash of the CV file
 
 # class Resume(Base):     # uploaded cv 
