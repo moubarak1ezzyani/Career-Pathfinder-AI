@@ -1,10 +1,29 @@
 from pydantic import BaseModel
 import datetime
+from typing import Optional
 
-class Candidat(BaseModel):
+class CandidatCreate(BaseModel):
     id : int
     email : str
-    hash_cv : str
+    password : str
+    # hash_cv : str
+
+class CandidatResponse(BaseModel):
+    id : int
+    email : str
+    is_active : bool
+
+class CandidatLogin(BaseModel):
+    email : str
+    password : str
+
+class token(BaseModel):
+    access_token : str
+    token_type : str
+
+class TokenData(BaseModel):
+    email : Optional[str] =  None
+
 
 class Offre(BaseModel):
     id : int
