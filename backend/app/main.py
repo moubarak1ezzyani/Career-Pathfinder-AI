@@ -17,3 +17,7 @@ def read_root():
 @my_app.post("/Register")
 def sign_up():
     pass
+
+@my_app.post("/Login")
+def sign_in():
+    pass
