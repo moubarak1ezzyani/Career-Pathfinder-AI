@@ -48,7 +48,8 @@ def analyze_match(cv_text: str, job_text: str, expected_skills: List[str] = None
     # 3. Calcul du Score (Cosine Similarity)
     similarity_matrix = cosine_similarity(cv_embedding, job_embedding)
     # On extrait le score, on le met sur 100 et on arrondit à 2 décimales
-    match_score = round(similarity_matrix[0][0] * 100, 2)
+    match_score_before=similarity_matrix[0][0].item()
+    match_score= round(match_score_before * 100, 2)
 
     # 4. Gap Analysis (Recherche des compétences manquantes)
     # Si aucune liste n'est fournie, on utilise une liste par défaut (MVP)
