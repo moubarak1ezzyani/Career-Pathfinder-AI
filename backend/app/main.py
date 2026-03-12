@@ -40,8 +40,8 @@ async def perform_analysis(
 
         # 2. Lecture du fichier PDF en mémoire
         pdf_content = await cv_file.read()
-        cv_path="../data/cv_sample_cleaned/Data_Science/DS_1.pdf"
-        doc = pymupdf.open(cv_path)    
+        
+        doc = pymupdf.open(stream=pdf_content, filetype="pdf")    
         cv_text = ""
         for page in doc:    
             cv_text += page.get_text()
