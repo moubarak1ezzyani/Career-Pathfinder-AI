@@ -6,4 +6,3 @@ __pycache__
 data/
 
 # unwanted files
-notebooks/matching_engine.ipynb
