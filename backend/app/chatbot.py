@@ -74,12 +74,15 @@ def evaluate_candidate(questions: QuestionList, candidate_answers: dict) -> Inte
 
 # --- 4. INTERACTIVE SCRIPT (The Chatbot) ---
 if __name__ == "__main__":
-    # Example job description (you can change it)
+    
     job_description_text = """
-    Mastery of Python 3
-    Experience with SQL databases (PostgreSQL)
-    Experience with Git, Docker, and CI/CD pipelines
-    """
+Mastery of Python 3
+Experience with SQL databases (PostgreSQL, SQLite)
+Experience with Git, Docker, and CI/CD pipelines
+Notions in Machine Learning (Pandas, Scikit-learn)
+Team spirit
+Good communication skills
+"""
     
     # Step 1: Create the test
     quiz = generate_questions(job_description_text)
