@@ -1,5 +1,12 @@
+__pycache__
 .env
 venv/
 
 #file data
 data/
+
+# Frontend ignores
+node_modules/
+.next/
+dist/
+.env.local
