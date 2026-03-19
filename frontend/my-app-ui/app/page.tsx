@@ -97,7 +97,7 @@ export default function CareerPathfinder() {
               />
               <textarea 
                 placeholder="Paste Job Description here..."
-                className="w-full h-32 p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full h-32 p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-blue-700"
                 value={jobDesc}
                 onChange={(e) => setJobDesc(e.target.value)}
               />
@@ -140,9 +140,9 @@ export default function CareerPathfinder() {
                 <div className="max-h-[500px] overflow-y-auto space-y-6 pr-2">
                   {questions.map((q) => (
                     <div key={q.number} className="space-y-2">
-                      <p className="font-semibold text-slate-800">Q{q.number}: {q.question_text}</p>
+                      <p className="font-semibold text-indigo-600">Q{q.number}: {q.question_text}</p>
                       <textarea 
-                        className="w-full p-2 border rounded-lg bg-slate-50 focus:bg-white transition-colors"
+                        className="w-full p-2 border rounded-lg bg-slate-50 focus:bg-white transition-colors text-indigo-700"
                         onChange={(e) => setAnswers({...answers, [q.number]: e.target.value})}
                         required
                       />
