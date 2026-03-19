@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware 
 from pydantic import BaseModel
 from openai import OpenAI
 import pymupdf
@@ -8,6 +9,14 @@ from sentence_transformers import util
 
 app = FastAPI(title="Career Pathfinder AI", version="1.0")
 
+# --- CORS CONFIG ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins (good for local testing)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (POST, GET, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 # ==========================================
 # 1. AI CONFIGURATION & MODELS
 # ==========================================
