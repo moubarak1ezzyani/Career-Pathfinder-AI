@@ -1,10 +1,24 @@
-__pycache__
-.env
-venv/
-__pycache__
+# Python dependencies
+**/__pycache__/
+**/venv/
+**/.venv/
+**/*.pyc
 
-#file data
+#data
 data/
 
-# unwanted files
-UNWANTED/
+# Node dependencies
+**/node_modules/
+**/dist/
+**/.next/
+
+# Environment & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db
