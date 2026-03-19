@@ -113,7 +113,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
     }
 
 
-# --- UPDATED: Generate Interview Questions Route ---
+# --- Generate Interview Questions Route ---
 @app.post("/generate-quiz", response_model=QuestionList)
 async def generate_quiz(job_description: str = Form(...)): # Changed from request: JobDescriptionRequest to Form(...)
     
@@ -132,7 +132,7 @@ async def generate_quiz(job_description: str = Form(...)): # Changed from reques
     return response.choices[0].message.parsed
 
 
-# --- NEW: Evaluate Interview Route ---
+# --- Evaluate Interview Route ---
 @app.post("/evaluate-interview", response_model=InterviewResult)
 async def evaluate_interview(request: EvaluateInterviewRequest):
     evaluation_data = ""
