@@ -1,100 +1,92 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Datetime, JSON, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Boolean, JSON
 from api.database import my_Base
-import datetime
 from sqlalchemy.sql import func
 
+# ==========================================
+# 1. UTILISATEUR & AUTHENTIFICATION
+# ==========================================
 class Candidat(my_Base):
-    __tablename__="candidats"
-    id=Column(Integer, primary_key=True, index=True)
-    email=Column(String, unique=True, index=True)
-    name=Column(String, index=True)
-    created_at=Column(DateTime, server_default=func.now(), index=True)
-    hashed_pwd=Column(String, nullable=True)
-    is_active=Column(Boolean, default=True)
-    # hash_cv=Column(String)      # Stores the reference/hash of the CV file
-
-# class JobTarget(Base):
-#     __tablename__="job_targets"
-#     id=Column(Integer, primary_key=True, index=True)
-#     candidat_id=Column(Integer, ForeignKey("candidats.id"))
-#     title=Column(String, index=True)    # Ex: "dev python Junior"
-#     description_text=Column(String)     # text collé par l utilisateur
-#     created_at=Column(Datetime, server_default=func.now(), index=True)
-
-# class MatchResults(Base):
-#     __tablename__="match_results"
-#     id=Column(Integer, primary_key=True, index=True)
-#     resume_id=Column(Integer, ForeignKey("resumes.id"))
-#     job_target_id=Column(Integer, ForeignKey("job_targets.id"))
-#     overall_score=Column(Float)
-#     missing_skills=Column(JSON)
-#     analyzed_at=Column(Datetime, server_default=func.now(), index=True)
-
-# class CoverLetters(Base):
-#     __tablename__="cover_letters"
-#     id=Column(Integer, primary_key=True, index=True)
-#     resume_id=Column(Integer, ForeignKey("resumes.id"))
-#     job_target_id=Column(Integer, ForeignKey("job_targets.id"))
-#     generated_content=Column(String)
-#     created_at=Column(Datetime, server_default=func.now(), index=True)
-
-# class InterviewSession(Base):
-#     __tablename__="interview_session"
-#     id=Column(Integer, primary_key=True, index=True)
-#     candidat_id=Column(Integer, ForeignKey("candidats.id"))
-#     job_target_id=Column(Integer, ForeignKey("job_targets.id"))
-#     status=Column(String)
-#     started_at=Column(Datetime, server_default=func.now(), index=True)
-#     ended_at=Column(Datetime, server_default=func.now(), index=True)
-
-# class InterviewMessage(Base):   # Historique du Chatbot
-#     __tablename__="interview_message"
-#     id=Column(Integer, primary_key=True, index=True)
-#     session_id=Column(Integer, ForeignKey("interview_session.id"))
-#     sender=Column(String)
-#     content=Column(String)
-#     created_at=Column(Datetime, server_default=func.now(), index=True)
-
-# class SoftSkillsEvaluation(Base):
-#     __tablename__="soft_skills_evaluation"
-#     id=Column(Integer, primary_key=True, index=True)
-#     session_id=Column(Integer, ForeignKey("interview_session.id"))
-#     stress_score=Column(Float)
-#     confidence_score=Column(Float)
-#     communication_score=Column(Float)
-#     emotional_timeline=Column(JSON)
-#________________________________________________
-# class Resume(Base):     # uploaded cv 
-#     __tablename__="resumes"
-#     id=Column(Integer, primary_key=True, index=True)
-#     candidat_id=Column(Integer, ForeignKey("candidats.id"))
-#     file_path=Column(String)
-#     raw_text=Column(String)
-#     uploaded_at=Column(DateTime)
-# ---------------------------------------------
-# class Offre(Base):
-#     __tablename__="offres"
-#     id=Column(Integer, primary_key=True, index=True)
-#     titre=Column(String, index=True)
-#     # Using String or Text for vector data (or PickledType/JSON depending on your vector DB)
-#     vect_content=Column(String)
-
-# class SessionCoaching(Base):
-#     __tablename__="session_coaching"
-#     id=Column(Integer, primary_key=True, index=True)
-#     date=Column(DateTime, default=datetime.datetime.utc())
-#     score_matching=Column(Float)
-#     type_entrainement=Column(String)      # e.g., "Interview", "Technical"
-
-# class ResultatVideo(Base):
-#     __tablename__="resultat_video"
-#     id=Column(Integer, primary_key=True, index=True)
-#     emotion_dominante=Column(String)
-#     timestamp=Column(Float)
-
+    __tablename__ = "candidats"
     
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    name = Column(String, index=True)
+    hashed_pwd = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now(), index=True)
 
+# ==========================================
+# 2. GESTION DU CV (Lié à matching_engine.py)
+# ==========================================
+class Resume(my_Base):     
+    __tablename__ = "resumes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    candidat_id = Column(Integer, ForeignKey("candidats.id"))
+    
+    # Très important pour matching_engine.py (extract_text_from_pdf)
+    file_path = Column(String, nullable=False) 
+    
+    # Pour éviter de repayer Qwen si on a déjà extrait les compétences
+    extracted_skills_json = Column(JSON, nullable=True) 
+    
+    uploaded_at = Column(DateTime, server_default=func.now())
 
+# ==========================================
+# 3. L'OFFRE CIBLÉE (Lié à chatbot.py et main.py)
+# ==========================================
+class JobTarget(my_Base):
+    __tablename__ = "job_targets"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    candidat_id = Column(Integer, ForeignKey("candidats.id"))
+    
+    title = Column(String, index=True)    
+    # Le texte brut de l'offre, crucial pour generate_questions et analyze_match
+    description_text = Column(String, nullable=False) 
+    
+    created_at = Column(DateTime, server_default=func.now(), index=True)
 
+# ==========================================
+# 4. LE MATCHING (Lié à matching_engine.py -> analyze_match)
+# ==========================================
+class MatchResults(my_Base):
+    __tablename__ = "match_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    resume_id = Column(Integer, ForeignKey("resumes.id"))
+    job_target_id = Column(Integer, ForeignKey("job_targets.id"))
+    
+    # Stocke le 'match_score' (ex: 85.5) calculé par util.cos_sim
+    overall_score = Column(Float) 
+    
+    # Stocke le dict 'data' de matching_engine.py 
+    # (cv_skills_found, job_skills_required, missing_skills)
+    match_details = Column(JSON) 
+    
+    analyzed_at = Column(DateTime, server_default=func.now(), index=True)
 
-
+# ==========================================
+# 5. L'ENTRETIEN TECHNIQUE (Lié à chatbot.py -> EvaluateInterview)
+# ==========================================
+class InterviewSession(my_Base):
+    __tablename__ = "interview_session"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    candidat_id = Column(Integer, ForeignKey("candidats.id"))
+    job_target_id = Column(Integer, ForeignKey("job_targets.id"))
+    
+    status = Column(String, default="pending") # pending, in_progress, completed
+    
+    # Stocke le QuestionList généré par Qwen
+    generated_questions = Column(JSON, nullable=True) 
+    
+    # Stocke les réponses brutes tapées par le candidat
+    candidate_answers = Column(JSON, nullable=True)
+    
+    # Stocke le InterviewResult généré par evaluate_candidate
+    score_out_of_10 = Column(Integer, nullable=True)
+    evaluation_details = Column(JSON, nullable=True) # justify: True/False etc.
+    
+    started_at = Column(DateTime, server_default=func.now(), index=True)
+    ended_at = Column(DateTime, nullable=True)
