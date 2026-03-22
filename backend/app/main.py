@@ -1,168 +1,143 @@
-from fastapi import FastAPI, UploadFile, File, Form
+import os
+import shutil
+from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware 
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from openai import OpenAI
-import pymupdf
-from sentence_transformers import SentenceTransformer
-import torch
-from sentence_transformers import util
+
+# Importation de tes modules de Base de Données
+from api.database import get_db, engine
+import models
+
+# Importation de tes moteurs d'IA (les fichiers qu'on a nettoyés !)
+from matching_engine import analyze_match
+from chatbot import generate_questions, evaluate_candidate, QuestionList
+
+# Création des tables dans la base de données (si elles n'existent pas)
+models.my_Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Career Pathfinder AI", version="1.0")
 
 # --- CORS CONFIG ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (good for local testing)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (POST, GET, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-# ==========================================
-# 1. AI CONFIGURATION & MODELS
-# ==========================================
-nlp_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-client = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama" 
-)
-MODEL_NAME = "qwen2.5:3b"
+# Dossier local pour sauvegarder les CV uploadés
+UPLOAD_DIR = "uploads/cvs"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # ==========================================
-# 2. PYDANTIC SCHEMAS (Data Molds)
+# PYDANTIC SCHEMAS (Pour la validation des requêtes)
 # ==========================================
-# Schema for CV Analysis
-class SkillsExtraction(BaseModel):
-    found_skills: list[str]
-    required_skills: list[str]
-
-# Schemas for Interview Generation
-class Question(BaseModel):
-    number: int
-    question_text: str
-
-class QuestionList(BaseModel):
-    questions: list[Question]
-
-class JobDescriptionRequest(BaseModel):
-    job_description: str
-
-# Schemas for Interview Evaluation
-class AnswerEvaluation(BaseModel):
-    number: int
-    is_correct: bool
-    justification: str
-
-class InterviewResult(BaseModel):
-    score_out_of_10: int
-    answer_details: list[AnswerEvaluation]
-
 class EvaluateInterviewRequest(BaseModel):
-    questions: QuestionList
+    session_id: int
     candidate_answers: dict[int, str]
 
 # ==========================================
-# 3. ROUTES (Endpoints)
+# ROUTES (Endpoints)
 # ==========================================
 
-# --- Existing CV Analysis Route ---
+# --- 1. CV Analysis Route ---
 @app.post("/analyze")
-async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(...)):
-    pdf_content = await file.read()
-    doc = pymupdf.open(stream=pdf_content, filetype="pdf")
-    cv_text = "".join([page.get_text() for page in doc])
-    
-    prompt_systeme = """
-    Tu es un expert en recrutement très strict. Ta seule mission est d'extraire les mots-clés de compétences techniques et soft skills.
-    1. Trouve toutes les compétences présentes dans le texte du CV fourni.
-    2. Trouve toutes les compétences exigées dans le texte de l'offre d'emploi fournie.
-    Ne rédige aucune phrase. Remplis uniquement le format JSON demandé.
-    """
-    prompt_utilisateur = f"--- TEXTE DU CV ---\n{cv_text}\n\n--- TEXTE DE L'OFFRE ---\n{job_description}"
+async def analyze_cv(
+    file: UploadFile = File(...), 
+    job_description: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # 1. Sauvegarder physiquement le fichier PDF
+    file_location = f"{UPLOAD_DIR}/{file.filename}"
+    with open(file_location, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # 2. Créer un candidat "Démo" pour l'instant (à lier à ton auth plus tard)
+    candidat = models.Candidat(name="User Démo", email="demo@test.com")
+    db.add(candidat)
+    db.commit()
+    db.refresh(candidat)
 
-    response = client.beta.chat.completions.parse(
-        model=MODEL_NAME,
-        messages=[
-            {"role": "system", "content": prompt_systeme},
-            {"role": "user", "content": prompt_utilisateur}
-        ],
-        response_format=SkillsExtraction,
-    )
+    # 3. Enregistrer le Resume et le JobTarget en DB
+    resume = models.Resume(candidat_id=candidat.id, file_path=file_location)
+    job_target = models.JobTarget(candidat_id=candidat.id, description_text=job_description)
+    db.add(resume)
+    db.add(job_target)
+    db.commit()
+    db.refresh(resume)
+    db.refresh(job_target)
 
-    extracted_data = response.choices[0].message.parsed
-    cv_skills = extracted_data.found_skills
-    job_skills = extracted_data.required_skills
+    # 4. Appeler ton super moteur d'IA
+    result = analyze_match(cv_file_path=file_location, job_description=job_description)
 
-    if not job_skills or not cv_skills:
-        return {"status": "error", "message": "Impossible d'extraire les compétences."}
-
-    cv_embeddings = nlp_model.encode(cv_skills, convert_to_tensor=True)
-    job_embeddings = nlp_model.encode(job_skills, convert_to_tensor=True)
-
-    total_score = 0
-    missing_skills = []
-    cosine_scores = util.cos_sim(job_embeddings, cv_embeddings)
-
-    for i, job_skill in enumerate(job_skills):
-        best_match_score = torch.max(cosine_scores[i]).item()
-        total_score += best_match_score
-        if best_match_score < 0.4:
-            missing_skills.append(job_skill)
-
-    final_match_score = (total_score / len(job_skills)) * 100
+    if result["status"] == "success":
+        # 5. Sauvegarder les résultats du Match en DB
+        match_result = models.MatchResults(
+            resume_id=resume.id,
+            job_target_id=job_target.id,
+            overall_score=result["match_score"],
+            match_details=result["data"]
+        )
+        db.add(match_result)
+        db.commit()
 
     return {
-        "status": "success",
-        "match_score": round(final_match_score, 2),
-        "data": {
-            "cv_skills_found": cv_skills,
-            "job_skills_required": job_skills,
-            "missing_skills": missing_skills
-        }
+        "candidat_id": candidat.id,
+        "job_target_id": job_target.id,
+        "ai_result": result
     }
 
+# --- 2. Generate Interview Questions Route ---
+@app.post("/generate-quiz")
+async def generate_quiz(job_target_id: int = Form(...), db: Session = Depends(get_db)):
+    
+    # 1. Récupérer l'offre d'emploi depuis la base de données
+    job_target = db.query(models.JobTarget).filter(models.JobTarget.id == job_target_id).first()
+    if not job_target:
+        raise HTTPException(status_code=404, detail="Offre d'emploi introuvable")
 
-# --- Generate Interview Questions Route ---
-@app.post("/generate-quiz", response_model=QuestionList)
-async def generate_quiz(job_description: str = Form(...)): # Changed from request: JobDescriptionRequest to Form(...)
+    # 2. Appeler l'IA (Qwen via chatbot.py)
+    quiz = generate_questions(job_target.description_text)
     
-    prompt = f"""
-    You are an expert technical recruiter. Your goal is to evaluate a candidate's "Hard Skills".
-    Based ONLY on the following job description, generate exactly 10 short technical questions.
-    Job description :
-    {job_description}
-    """
-    
-    response = client.beta.chat.completions.parse(
-        model=MODEL_NAME,
-        messages=[{"role": "user", "content": prompt}],
-        response_format=QuestionList,
+    # 3. Créer une session d'interview en base de données
+    session = models.InterviewSession(
+        candidat_id=job_target.candidat_id,
+        job_target_id=job_target.id,
+        status="in_progress",
+        generated_questions=quiz.model_dump() # Sauvegarde le JSON !
     )
-    return response.choices[0].message.parsed
-
-
-# --- Evaluate Interview Route ---
-@app.post("/evaluate-interview", response_model=InterviewResult)
-async def evaluate_interview(request: EvaluateInterviewRequest):
-    evaluation_data = ""
-    for q in request.questions.questions:
-        ans = request.candidate_answers.get(q.number, "No answer")
-        evaluation_data += f"Q{q.number}: {q.question_text}\nCandidate's answer: {ans}\n\n"
-        
-    prompt = f"""
-    You are a technical grader. Here are 10 questions asked to a candidate and their answers.
-    Evaluate each answer. 
-    - If the answer is correct: set "is_correct" to true and just write "True" in the justification.
-    - If the answer is wrong or incomplete: set "is_correct" to false and provide a very brief technical explanation in the justification.
-    Strictly calculate the score out of 10 based on the number of correct answers.
+    db.add(session)
+    db.commit()
+    db.refresh(session)
     
-    Here is the data to grade:
-    {evaluation_data}
-    """
+    return {
+        "session_id": session.id,
+        "questions": quiz
+    }
+
+# --- 3. Evaluate Interview Route ---
+@app.post("/evaluate-interview")
+async def evaluate_interview(request: EvaluateInterviewRequest, db: Session = Depends(get_db)):
     
-    response = client.beta.chat.completions.parse(
-        model=MODEL_NAME,
-        messages=[{"role": "user", "content": prompt}],
-        response_format=InterviewResult,
-    )
-    return response.choices[0].message.parsed
+    # 1. Récupérer la session d'interview
+    session = db.query(models.InterviewSession).filter(models.InterviewSession.id == request.session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session d'interview introuvable")
+
+    # Convertir le JSON sauvegardé en objet Pydantic
+    questions_list = QuestionList(**{"questions": session.generated_questions["questions"]})
+
+    # 2. Appeler l'IA pour corriger
+    evaluation_result = evaluate_candidate(questions_list, request.candidate_answers)
+    
+    # 3. Mettre à jour la base de données avec le score et les justifications
+    session.status = "completed"
+    session.candidate_answers = request.candidate_answers
+    session.score_out_of_10 = evaluation_result.score_out_of_10
+    session.evaluation_details = [ans.model_dump() for ans in evaluation_result.answer_details]
+    
+    db.commit()
+    
+    return evaluation_result
