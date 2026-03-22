@@ -6,6 +6,7 @@
 
 #data
 data/
+uploads
 
 # Node dependencies
 **/node_modules/
