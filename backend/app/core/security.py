@@ -3,7 +3,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, status
-from config import SECRET_KEY, ALGO
+from app.core.config import SECRET_KEY, ALGO
 
 # Configuration du hash et du schéma d'authentification
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")

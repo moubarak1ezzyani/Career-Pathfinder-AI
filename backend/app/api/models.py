@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Boolean, JSON
-from api.database import my_Base
+from app.api.database import my_Base
 from sqlalchemy.sql import func
 
 # ==========================================

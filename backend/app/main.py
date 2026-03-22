@@ -7,15 +7,15 @@ from sqlalchemy.orm import Session
 import jwt
 
 # --- Importation de tes propres modules ---
-from api.database import get_db, engine
-import models
-import schemas
-from config import SECRET_KEY, ALGO
-from security import get_pwd_hash, verify_pwd, create_access_token, oauth2_scheme
+from app.api.database import get_db, engine
+from app.api import models
+from app.api import schemas
+from app.core.config import SECRET_KEY, ALGO
+from app.core.security import get_pwd_hash, verify_pwd, create_access_token, oauth2_scheme
 
 # Importation de tes moteurs d'IA
-from matching_engine import analyze_match
-from chatbot import generate_questions, evaluate_candidate
+from app.services.matching_engine import analyze_match
+from app.chatbot import generate_questions, evaluate_candidate
 
 # Création des tables dans la base de données
 models.my_Base.metadata.create_all(bind=engine)
