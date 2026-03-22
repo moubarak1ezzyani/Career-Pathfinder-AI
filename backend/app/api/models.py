@@ -13,14 +13,6 @@ class Candidat(my_Base):
     is_active=Column(Boolean, default=True)
     # hash_cv=Column(String)      # Stores the reference/hash of the CV file
 
-# class Resume(Base):     # uploaded cv 
-#     __tablename__="resumes"
-#     id=Column(Integer, primary_key=True, index=True)
-#     candidat_id=Column(Integer, ForeignKey("candidats.id"))
-#     file_path=Column(String)
-#     raw_text=Column(String)
-#     uploaded_at=Column(DateTime)
-
 # class JobTarget(Base):
 #     __tablename__="job_targets"
 #     id=Column(Integer, primary_key=True, index=True)
@@ -71,7 +63,14 @@ class Candidat(my_Base):
 #     confidence_score=Column(Float)
 #     communication_score=Column(Float)
 #     emotional_timeline=Column(JSON)
-
+#________________________________________________
+# class Resume(Base):     # uploaded cv 
+#     __tablename__="resumes"
+#     id=Column(Integer, primary_key=True, index=True)
+#     candidat_id=Column(Integer, ForeignKey("candidats.id"))
+#     file_path=Column(String)
+#     raw_text=Column(String)
+#     uploaded_at=Column(DateTime)
 # ---------------------------------------------
 # class Offre(Base):
 #     __tablename__="offres"
