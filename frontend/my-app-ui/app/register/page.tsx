@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, UserPlus } from 'lucide-react'; // Ajout des icônes
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -24,8 +25,6 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }), 
-        // Si ton backend attend "username" au lieu de "email" pour le register, 
-        // remplace la ligne ci-dessus par : body: JSON.stringify({ username: email, password }),
       });
 
       if (!res.ok) {
@@ -34,7 +33,6 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
-      // Redirection vers le login après 2 secondes
       setTimeout(() => {
         router.push("/login");
       }, 2000);
@@ -45,37 +43,58 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-96 text-black">
-        <h2 className="text-2xl mb-6 font-bold text-center text-gray-800">Inscription</h2>
+    <main className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
+      <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
         
-        {error && <p className="text-red-500 mb-4 text-sm text-center">{error}</p>}
-        {success && <p className="text-green-500 mb-4 text-sm text-center">Compte créé ! Redirection...</p>}
-        
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-6 border rounded"
-          required
-        />
-        <button type="submit" className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
-          Créer mon compte
-        </button>
+        {/* En-tête stylisé */}
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+            <Sparkles className="text-blue-600" size={32} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Créer un compte</h2>
+            <p className="text-slate-500 mt-2">Rejoins Career Pathfinder AI</p>
+          </div>
+        </div>
 
-        <p className="mt-4 text-sm text-center text-gray-600">
-          Déjà un compte ? <a href="/login" className="text-blue-600 hover:underline">Se connecter</a>
-        </p>
-      </form>
-    </div>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-8">
+          {error && (
+            <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm border border-red-100 text-center font-medium">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-emerald-50 text-emerald-600 p-3 rounded-xl text-sm border border-emerald-100 text-center font-medium">
+              Compte créé avec succès ! Redirection...
+            </div>
+          )}
+          
+          <input
+            type="email"
+            placeholder="Adresse email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-700 bg-slate-50"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-700 bg-slate-50"
+            required
+          />
+          
+          <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all flex justify-center items-center gap-2 shadow-lg shadow-blue-200 mt-2">
+            <UserPlus size={20} /> Créer mon compte
+          </button>
+
+          <p className="mt-6 text-sm text-center text-slate-600">
+            Déjà un compte ? <a href="/login" className="text-blue-600 font-bold hover:underline transition-all">Se connecter</a>
+          </p>
+        </form>
+      </div>
+    </main>
   );
 }
