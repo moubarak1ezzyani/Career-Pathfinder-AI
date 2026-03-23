@@ -3,7 +3,11 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 python-dotenv
-passlib
+passlib[bcrypt]
+python-jose[cryptography]  # Souvent utilisé avec passlib pour les JWT
+python-multipart           # INDISPENSABLE pour l'upload de fichiers (FormData)
 pdfplumber
+pymupdf                    # Ajouté dans ton dernier script de matching
 sentence-transformers
 scikit-learn
+openai                     # Pour la connexion au client Ollama
