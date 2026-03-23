@@ -102,7 +102,7 @@ def analyze_match(cv_file_path: str, job_description: str) -> dict:
         total_score += best_match_score
         
         # Si la similarité est < 40%, on considère la compétence manquante
-        if best_match_score < 0.4:
+        if best_match_score < 0.6:
             missing_skills.append(job_skill)
     
     final_match_score = round((total_score / len(job_skills)) * 100, 2)
