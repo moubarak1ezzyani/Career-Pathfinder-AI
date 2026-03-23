@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # 1. LA BASE DE DONNÉES POSTGRESQL
+  db:
+    image: postgres:15-alpine
+    container_name: career_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: career_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. LE BACKEND FASTAPI
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: career_backend
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      # L'URL de connexion à la base de données (Note que l'hôte est "db", le nom du service au-dessus !)
+      - DATABASE_URL=postgresql://admin:password123@db:5432/career_db
+    depends_on:
+      - db
+    # Permet au backend de communiquer avec l'Ollama qui tourne sur ton PC physique
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # 3. LE FRONTEND NEXT.JS
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: career_frontend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      # Indique au frontend où joindre le backend
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - backend
+
+# Déclaration du volume pour sauvegarder les données de la base de données même si on coupe Docker
+volumes:
+  postgres_data:
