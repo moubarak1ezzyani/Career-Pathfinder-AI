@@ -4,11 +4,19 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   // On récupère le token stocké localement
   const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
   
-  const headers = {
-    "Content-Type": "application/json",
+  // On prépare les headers de base (sans forcer le Content-Type tout de suite)
+  const headers: Record<string, string> = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
+
+  // 🚨 LA CORRECTION EST ICI :
+  // Si on n'envoie PAS un fichier (FormData) et qu'on n'a pas déjà précisé de Content-Type,
+  // alors seulement on met "application/json".
+  // Si c'est un FormData, on ne met rien, et le navigateur gèrera le "multipart/form-data" tout seul !
+  if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
