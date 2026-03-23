@@ -184,12 +184,28 @@ export default function HomePage() {
               </button>
             </form>
 
-            {analysis && (
+           {analysis && (
               <div className="mt-6 p-6 bg-blue-600 rounded-2xl text-white">
                 <div className="text-sm opacity-80 uppercase font-bold mb-1">Score de Match</div>
-                <div className="text-5xl font-black">{analysis.match_score}%</div>
-                <div className="mt-4 text-sm bg-blue-700/50 p-3 rounded-lg">
-                   <strong>Compétences manquantes :</strong> {analysis.data.missing_skills.join(', ') || "Aucune !"}
+                <div className="text-5xl font-black">{analysis?.match_score || 0}%</div>
+                
+                {/* Nouveau bloc beaucoup plus détaillé */}
+                <div className="mt-4 text-sm bg-blue-700/50 p-4 rounded-xl space-y-3">
+                   <p>
+                     <strong className="text-blue-200">Compétences exigées par l'offre :</strong><br/>
+                     {analysis?.data?.job_skills_required?.join(', ') || "Aucune extraite"}
+                   </p>
+                   <p>
+                     <strong className="text-blue-200">Compétences trouvées dans le CV :</strong><br/>
+                     {analysis?.data?.cv_skills_found?.join(', ') || "Aucune extraite"}
+                   </p>
+                   <div className="h-px bg-blue-500 w-full my-2"></div>
+                   <p>
+                     <strong className="text-white">Compétences manquantes :</strong><br/>
+                     {analysis?.data?.missing_skills && analysis.data.missing_skills.length > 0 
+                        ? <span className="text-rose-300 font-bold">{analysis.data.missing_skills.join(', ')}</span> 
+                        : <span className="text-emerald-300 font-bold">Aucune ! Profil parfait 🎉</span>}
+                   </p>
                 </div>
               </div>
             )}
