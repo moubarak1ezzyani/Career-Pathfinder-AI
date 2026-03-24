@@ -29,20 +29,30 @@ def generate_questions(job_description: str) -> QuestionList:
 def evaluate_candidate(questions: QuestionList, candidate_answers: dict) -> InterviewResult:
     print("\n⏳ The AI is grading your test, please wait...")
     
-    # Prepare the text containing the questions and the candidate's answers
     evaluation_data = ""
     for q in questions.questions:
-        ans = candidate_answers.get(q.number, "No answer")
+        ans = candidate_answers.get(str(q.number), "No answer") # str() par sécurité si les clés JSON sont en string
         evaluation_data += f"Q{q.number}: {q.question_text}\nCandidate's answer: {ans}\n\n"
         
-    prompt = EVALUATE_TECHNICAL_QUESTIONS_PROMPT
+    prompt = EVALUATE_TECHNICAL_QUESTIONS_PROMPT.format(evaluation_data=evaluation_data)
     
     response = client.beta.chat.completions.parse(
         model=MODEL_NAME,
         messages=[{"role": "user", "content": prompt}],
         response_format=InterviewResult,
     )
-    return response.choices[0].message.parsed
+    
+    # On récupère le résultat brut de l'IA
+    result = response.choices[0].message.parsed
+    
+    # 🔒 SÉCURITÉ MATHÉMATIQUE (Plan B)
+    # On recompte nous-mêmes le nombre exact de réponses "True"
+    vrai_score = sum(1 for ans in result.answer_details if ans.is_correct)
+    
+    # On écrase le mauvais calcul de l'IA par notre calcul parfait
+    result.score_out_of_10 = vrai_score
+    
+    return result
 
 # --- 4. INTERACTIVE SCRIPT (The Chatbot) ---
 if __name__ == "__main__":
