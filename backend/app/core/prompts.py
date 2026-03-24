@@ -1,6 +1,6 @@
 # varaibles 
-job_description :str
-evaluation_data :str
+job_description = None
+evaluation_data = None
 
 # matchnig_engine
 SKILL_EXTRACTION_SYSTEM_PROMPT = """
@@ -30,7 +30,7 @@ TECHNICAL_QUESTIONS_PROMPT= f"""
     {job_description}
     """
 
-EVALUATE_TECHNICAL_QUESTIONS_PROMPT = f"""
+EVALUATE_TECHNICAL_QUESTIONS_PROMPT_1 = f"""
     You are a technical grader. Here are 10 questions asked to a candidate and their answers.
     Evaluate each answer. 
     - If the answer is correct: set "is_correct" to true and just write "True" in the justification.
@@ -40,3 +40,16 @@ EVALUATE_TECHNICAL_QUESTIONS_PROMPT = f"""
     Here is the data to grade:
     {evaluation_data}
     """
+EVALUATE_TECHNICAL_QUESTIONS_PROMPT = """
+You are an expert IT technical grader evaluating a candidate's test.
+Read the questions and the candidate's answers below.
+
+Rules for evaluation:
+1. For each answer, decide if it is correct or incorrect.
+2. If correct, set "is_correct" to true, and write exactly "Valid answer." in "justification".
+3. If incorrect, set "is_correct" to false, and write a 1-sentence technical explanation of what is wrong or missing in "justification" (DO NOT copy the prompt instructions).
+4. Finally, count the exact number of true answers and put that number in "score_out_of_10".
+
+Data to grade:
+{evaluation_data}
+"""
