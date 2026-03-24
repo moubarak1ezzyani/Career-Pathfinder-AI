@@ -19,3 +19,7 @@ TOKEN_EXPIRE=os.getenv("TOKEN_EXPIRE_env")
 
 # paths
 cv_me_standard=os.getenv("cv_me_standard_env")
+
+# AI models
+LLM_MODEL_NAME= "qwen2.5:3b" 
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
