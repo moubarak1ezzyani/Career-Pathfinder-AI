@@ -6,18 +6,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import jwt
 
-# --- Importation de tes propres modules ---
+# --- Import custom modules ---
 from app.api.database import get_db, engine
 from app.api import models
 from app.api import schemas
 from app.core.config import SECRET_KEY, ALGO
 from app.core.security import get_pwd_hash, verify_pwd, create_access_token, oauth2_scheme
 
-# Importation de tes moteurs d'IA
+# Import AI engines
 from app.services.matching_engine import analyze_match
 from app.chatbot import generate_questions, evaluate_candidate
 
-# Création des tables dans la base de données
+# Create database tables
 models.my_Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Career Pathfinder AI", version="1.0")
@@ -34,47 +34,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Dossier local pour sauvegarder les CV uploadés
+# Local directory to save uploaded CVs
 UPLOAD_DIR = "uploads/cvs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 # ==========================================
-# DEPENDANCES (Le fameux "verrou" de sécurité)
+# DEPENDENCIES (The security "lock")
 # ==========================================
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    """Vérifie le token et retourne l'utilisateur actuellement connecté."""
+    """Verifies the token and returns the currently authenticated user."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGO])
         email: str = payload.get("sub")
         if email is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide ou expiré")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
     
     user = db.query(models.Candidat).filter(models.Candidat.email == email).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur non trouvé")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
     return user
 
 
 # ==========================================
-# ROUTES PUBLIQUES : AUTHENTIFICATION
+# PUBLIC ROUTES: AUTHENTICATION
 # ==========================================
 @app.post("/register", response_model=schemas.CandidatResponse)
 def register(user: schemas.CandidatCreate, db: Session = Depends(get_db)):
-    # Vérifier si l'email existe déjà
+    # Check if the email already exists
     db_user = db.query(models.Candidat).filter(models.Candidat.email == user.email).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
+        raise HTTPException(status_code=400, detail="This email is already in use")
     
-    # Création du compte
+    # Create the account
     hashed_pwd = get_pwd_hash(user.password)
-    # On prend la première partie de l'email comme nom par défaut
-    nom_par_defaut = user.email.split("@")[0] 
+    # Use the first part of the email as the default name
+    default_name = user.email.split("@")[0] 
     
-    new_user = models.Candidat(email=user.email, hashed_pwd=hashed_pwd, name=nom_par_defaut)
+    new_user = models.Candidat(email=user.email, hashed_pwd=hashed_pwd, name=default_name)
     
     db.add(new_user)
     db.commit()
@@ -86,14 +86,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = db.query(models.Candidat).filter(models.Candidat.email == form_data.username).first()
     
     if not user or not verify_pwd(form_data.password, user.hashed_pwd):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou mot de passe incorrect")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
     
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 # ==========================================
-# ROUTES PRIVÉES : MOTEURS D'IA
+# PRIVATE ROUTES: AI ENGINES
 # ==========================================
 
 # --- 1. CV Analysis Route ---
@@ -102,14 +102,14 @@ async def analyze_cv(
     file: UploadFile = File(...), 
     job_description: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Route protégée !
+    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
 ):
-    # 1. Sauvegarder physiquement le fichier PDF
+    # 1. Physically save the PDF file
     file_location = f"{UPLOAD_DIR}/{file.filename}"
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 2. Lier le CV et l'offre au VRAI candidat connecté
+    # 2. Link the CV and job offer to the REAL authenticated candidate
     resume = models.Resume(candidat_id=current_user.id, file_path=file_location)
     job_target = models.JobTarget(candidat_id=current_user.id, description_text=job_description)
     db.add(resume)
@@ -118,11 +118,11 @@ async def analyze_cv(
     db.refresh(resume)
     db.refresh(job_target)
 
-    # 3. Appeler le moteur d'IA
+    # 3. Call the AI engine
     result = analyze_match(cv_file_path=file_location, job_description=job_description)
 
     if result["status"] == "success":
-        # 4. Sauvegarder les résultats
+        # 4. Save the results
         match_result = models.MatchResults(
             resume_id=resume.id,
             job_target_id=job_target.id,
@@ -143,16 +143,16 @@ async def analyze_cv(
 async def generate_quiz(
     job_target_id: int = Form(...), 
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Route protégée !
+    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
 ):
-    # Sécurité : vérifier que l'offre appartient bien au candidat connecté
+    # Security: verify that the job offer belongs to the authenticated candidate
     job_target = db.query(models.JobTarget).filter(
         models.JobTarget.id == job_target_id, 
         models.JobTarget.candidat_id == current_user.id
     ).first()
     
     if not job_target:
-        raise HTTPException(status_code=404, detail="Offre introuvable ou accès refusé")
+        raise HTTPException(status_code=404, detail="Job offer not found or access denied")
 
     quiz = generate_questions(job_target.description_text)
     
@@ -176,24 +176,24 @@ async def generate_quiz(
 async def evaluate_interview(
     request: schemas.EvaluateInterviewRequest, 
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Route protégée !
+    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
 ):
-    # Sécurité : vérifier que la session appartient au candidat
+    # Security: verify that the session belongs to the candidate
     session = db.query(models.InterviewSession).filter(
         models.InterviewSession.id == request.session_id,
         models.InterviewSession.candidat_id == current_user.id
     ).first()
     
     if not session:
-        raise HTTPException(status_code=404, detail="Session introuvable ou accès refusé")
+        raise HTTPException(status_code=404, detail="Session not found or access denied")
 
-    # On recrée l'objet Pydantic depuis la base de données
+    # Recreate the Pydantic object from the database
     questions_list = schemas.QuestionList(**{"questions": session.generated_questions["questions"]})
 
-    # Correction par l'IA
+    # AI grading
     evaluation_result = evaluate_candidate(questions_list, request.candidate_answers)
     
-    # Mise à jour DB
+    # Update DB
     session.status = "completed"
     session.candidate_answers = request.candidate_answers
     session.score_out_of_10 = evaluation_result.score_out_of_10
