@@ -96,3 +96,23 @@ class ResultatVideo(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --- 2. JSON SCHEMAS (Pydantic) ---
+# For generating questions
+class Question(BaseModel):
+    number: int
+    question_text: str
+
+class QuestionList(BaseModel):
+    questions: list[Question]
+
+# For the final evaluation
+class AnswerEvaluation(BaseModel):
+    number: int
+    is_correct: bool
+    justification: str
+
+class InterviewResult(BaseModel):
+    score_out_of_10: int
+    answer_details: list[AnswerEvaluation]
