@@ -16,3 +16,6 @@ DB_URL=f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 SECRET_KEY=os.getenv("SECRET_KEY_env")
 ALGO=os.getenv("ALGO_env")
 TOKEN_EXPIRE=os.getenv("TOKEN_EXPIRE_env")
+
+# paths
+cv_me_standard=os.getenv("cv_me_standard_env")
