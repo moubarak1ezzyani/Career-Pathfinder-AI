@@ -30,7 +30,7 @@ TECHNICAL_QUESTIONS_PROMPT= f"""
     {job_description}
     """
 
-EVALUATE_TECHNICAL_QUESTIONS_PROMPT_1 = f"""
+EVALUATE_TECHNICAL_QUESTIONS_PROMPT = f"""
     You are a technical grader. Here are 10 questions asked to a candidate and their answers.
     Evaluate each answer. 
     - If the answer is correct: set "is_correct" to true and just write "True" in the justification.
@@ -40,7 +40,7 @@ EVALUATE_TECHNICAL_QUESTIONS_PROMPT_1 = f"""
     Here is the data to grade:
     {evaluation_data}
     """
-EVALUATE_TECHNICAL_QUESTIONS_PROMPT = """
+EVALUATE_TECHNICAL_QUESTIONS_PROMPT_1 = f"""
 You are an expert IT technical grader evaluating a candidate's test.
 Read the questions and the candidate's answers below.
 
