@@ -15,6 +15,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    # 👇 NOUVEAU : On allume un vrai PostgreSQL le temps des tests !
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -36,10 +52,6 @@ jobs:
           echo "ALGO_env=HS256" >> $GITHUB_ENV
           echo "TOKEN_EXPIRE_env=30" >> $GITHUB_ENV
           echo "cv_me_standard_env=dummy.pdf" >> $GITHUB_ENV
-
-      - name: 👀 DEBUG - Show config.py content
-        working-directory: ./backend
-        run: cat app/core/config.py
 
       - name: 🚀 Install Dependencies & Run Tests
         working-directory: ./backend
