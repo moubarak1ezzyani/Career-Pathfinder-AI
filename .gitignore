@@ -7,6 +7,7 @@
 #data
 data/
 uploads
+test_database.db
 
 # Node dependencies
 **/node_modules/

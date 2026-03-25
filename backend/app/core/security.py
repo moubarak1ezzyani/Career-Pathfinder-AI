@@ -5,9 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, status
 from app.core.config import SECRET_KEY, ALGO
 
-# Configuration du hash et du schéma d'authentification
+# Password hashing and authentication scheme configuration
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
-# "login" est l'URL où FastAPI ira chercher le token dans Swagger (au lieu de 'token')
+
+# "login" is the URL where FastAPI will fetch the token in Swagger (instead of 'token')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login') 
 
 def get_pwd_hash(password: str) -> str:
@@ -18,7 +19,7 @@ def verify_pwd(plain_pwd: str, hash_pwd: str) -> bool:
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    # Expiration simple codée en dur (ou tu peux utiliser TOKEN_EXPIRE de ton config.py)
+   
     expire = datetime.now(timezone.utc) + timedelta(minutes=60)
     to_encode.update({"exp": expire})
     

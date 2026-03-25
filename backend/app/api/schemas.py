@@ -1,28 +1,30 @@
 from pydantic import BaseModel
-import datetime
-from typing import Optional, List, Dict
+from typing import Optional
+from datetime import datetime
 
 # ==========================================
-# 1. UTILISATEURS & AUTHENTIFICATION
+# 1. USERS & AUTHENTICATION
 # ==========================================
 class CandidatCreate(BaseModel):
-    # L'ID est retiré car il est auto-généré par la base de données
     email: str
     password: str
+    name: Optional[str] = None  # Added to match models.py
 
 class CandidatResponse(BaseModel):
     id: int
     email: str
+    name: Optional[str]
     is_active: bool
+    created_at: datetime
 
     class Config:
-        from_attributes = True  # Permet à Pydantic de lire les objets SQLAlchemy
+        from_attributes = True  # Allows Pydantic to read SQLAlchemy objects
 
 class CandidatLogin(BaseModel):
     email: str
     password: str
 
-class Token(BaseModel): # Renommé avec une majuscule (PEP 8)
+class Token(BaseModel):
     access_token: str
     token_type: str
 
@@ -30,16 +32,18 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 # ==========================================
-# 2. MATCHING & CV (Anciennement dans matching_engine.py)
+# 2. MATCHING ENGINE & CV
 # ==========================================
+# Used by Qwen for extraction
 class SkillsExtraction(BaseModel):
-    found_skills: List[str]
-    required_skills: List[str]
+    found_skills: list[str]
+    required_skills: list[str]
 
+# Used for the final API response
 class MatchData(BaseModel):
-    cv_skills_found: List[str]
-    job_skills_required: List[str]
-    missing_skills: List[str]
+    cv_skills_found: list[str]
+    job_skills_required: list[str]
+    missing_skills: list[str]
 
 class MatchResponse(BaseModel):
     status: str
@@ -47,15 +51,17 @@ class MatchResponse(BaseModel):
     data: MatchData
 
 # ==========================================
-# 3. CHATBOT & INTERVIEW (Anciennement dans chatbot.py)
+# 3. CHATBOT & INTERVIEW 
 # ==========================================
+# Used by Qwen to generate the quiz
 class Question(BaseModel):
     number: int
     question_text: str
 
 class QuestionList(BaseModel):
-    questions: List[Question]
+    questions: list[Question]
 
+# Used by Qwen to grade the answers
 class AnswerEvaluation(BaseModel):
     number: int
     is_correct: bool
@@ -63,14 +69,47 @@ class AnswerEvaluation(BaseModel):
 
 class InterviewResult(BaseModel):
     score_out_of_10: int
-    answer_details: List[AnswerEvaluation]
+    answer_details: list[AnswerEvaluation]
 
+# Used by the API endpoint to receive user answers
 class EvaluateInterviewRequest(BaseModel):
     session_id: int
-    candidate_answers: Dict[int, str]  # ex: {1: "Réponse 1", 2: "Réponse 2"}
+    candidate_answers: dict[int, str]  # e.g., {1: "Answer 1", 2: "Answer 2"}
 
 # ==========================================
-# 4. AUTRES SCHÉMAS (Existant dans ton projet)
+# 4. DATABASE ENTITY RESPONSES (Mapped to models.py)
+# ==========================================
+class ResumeResponse(BaseModel):
+    id: int
+    candidat_id: int
+    file_path: str
+    uploaded_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class JobTargetResponse(BaseModel):
+    id: int
+    candidat_id: int
+    title: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class InterviewSessionResponse(BaseModel):
+    id: int
+    candidat_id: int
+    job_target_id: int
+    status: str
+    score_out_of_10: Optional[int]
+    started_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# ==========================================
+# 5. LEGACY / OTHER SCHEMAS 
 # ==========================================
 class Offre(BaseModel):
     id: int
@@ -82,7 +121,7 @@ class Offre(BaseModel):
 
 class SessionCoaching(BaseModel):
     id: int
-    date: datetime.datetime
+    date: datetime
     score: float
     type_entrainement: str
 

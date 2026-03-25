@@ -1,7 +1,13 @@
+# --- Framework & Serveur ---
 fastapi
 uvicorn
+python-multipart
+
+# --- Base de données ---
 sqlalchemy
 psycopg2-binary
+
+# --- Sécurité & Auth ---
 python-dotenv
 passlib[bcrypt]
 python-jose[cryptography]  # Souvent utilisé avec passlib pour les JWT
@@ -11,3 +17,17 @@ pymupdf                    # Ajouté dans ton dernier script de matching
 sentence-transformers
 scikit-learn
 openai                     # Pour la connexion au client Ollama
+PyJWT
+
+# --- Traitement de PDF ---
+pdfplumber
+PyMuPDF
+
+# --- IA & Machine Learning ---
+sentence-transformers
+scikit-learn
+openai
+
+# --- Tests ---
+pytest
+httpx
