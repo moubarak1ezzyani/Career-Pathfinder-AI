@@ -1,33 +1,27 @@
-# --- Framework & Serveur ---
+# --- Framework & Serveur API ---
 fastapi
 uvicorn
-python-multipart
+python-multipart           # INDISPENSABLE pour l'upload de fichiers (FormData du CV)
 
 # --- Base de données ---
 sqlalchemy
 psycopg2-binary
 
-# --- Sécurité & Auth ---
+# --- Sécurité, Auth & Configuration ---
 python-dotenv
 passlib[bcrypt]
-python-jose[cryptography]  # Souvent utilisé avec passlib pour les JWT
-python-multipart           # INDISPENSABLE pour l'upload de fichiers (FormData)
+python-jose[cryptography]  # Pour la gestion des tokens JWT
+PyJWT                      # (Note : Fait la même chose que python-jose, conservé au cas où ton code l'utilise)
+
+# --- Traitement de Fichiers (CV PDF) ---
 pdfplumber
-pymupdf                    # Ajouté dans ton dernier script de matching
+PyMuPDF                    # Utilisé pour ton script de matching
+
+# --- IA, NLP & Machine Learning ---
 sentence-transformers
 scikit-learn
-openai                     # Pour la connexion au client Ollama
-PyJWT
-
-# --- Traitement de PDF ---
-pdfplumber
-PyMuPDF
-
-# --- IA & Machine Learning ---
-sentence-transformers
-scikit-learn
-openai
+openai                     # Pour la connexion au client Ollama en local
 
 # --- Tests ---
 pytest
-httpx
+httpx                      # Requis par FastAPI pour les tests (TestClient)
