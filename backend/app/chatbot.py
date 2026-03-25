@@ -2,13 +2,13 @@ from pydantic import BaseModel
 from openai import OpenAI
 import json
 from app.api.schemas import Question, QuestionList, AnswerEvaluation, InterviewResult
-from app.core.config import LLM_MODEL_NAME
+from app.core.config import LLM_MODEL_NAME, OLLAMA_URL
 from app.core.prompts import TECHNICAL_QUESTIONS_PROMPT, PYTHON_DEV_OFFER, EVALUATE_TECHNICAL_QUESTIONS_PROMPT
 
 
 # --- 1. LOCAL AI CONFIGURATION ---
 client = OpenAI(
-    base_url="http://localhost:11434/v1",
+    base_url=OLLAMA_URL,
     api_key="ollama"
 )
 MODEL_NAME = LLM_MODEL_NAME

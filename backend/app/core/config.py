@@ -24,3 +24,4 @@ cv_me_standard = os.getenv("cv_me_standard_env", "dummy.pdf")
 # AI models
 LLM_MODEL_NAME = "qwen2.5:3b" 
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/v1")

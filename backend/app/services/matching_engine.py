@@ -7,7 +7,7 @@ import torch
 import json
 from app.api.schemas import SkillsExtraction
 from app.core.prompts import SKILL_EXTRACTION_SYSTEM_PROMPT, PYTHON_DEV_OFFER
-from app.core.config import cv_me_standard
+from app.core.config import cv_me_standard, OLLAMA_URL
 
 # ==============================================================================
 # 🧠 1. MODEL INITIALIZATION 
@@ -17,7 +17,7 @@ nlp_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Connect to local Ollama instance
 client = OpenAI(
-    base_url="http://localhost:11434/v1",
+    base_url=OLLAMA_URL,
     api_key="ollama" 
 )
 
