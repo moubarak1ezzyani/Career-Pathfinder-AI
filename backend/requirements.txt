@@ -1,9 +1,26 @@
+# --- Framework & Serveur ---
 fastapi
 uvicorn
+python-multipart
+
+# --- Base de données ---
 sqlalchemy
 psycopg2-binary
+
+# --- Sécurité & Auth ---
 python-dotenv
-passlib
+passlib[bcrypt]
+PyJWT
+
+# --- Traitement de PDF ---
 pdfplumber
+PyMuPDF
+
+# --- IA & Machine Learning ---
 sentence-transformers
 scikit-learn
+openai
+
+# --- Tests ---
+pytest
+httpx
