@@ -2,13 +2,11 @@ name: Backend Tests
 
 on:
   push:
-    # Trigger the workflow when pushing to these branches
     branches: 
       - ci/github-actions-pipeline
       - develop
       - main
   pull_request:
-    # Trigger the workflow on PRs targeting these branches
     branches: 
       - develop
       - main
@@ -17,9 +15,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    # Resolves the Node.js 20 deprecation warning
+    # On injecte des fausses variables pour satisfaire config.py
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      DB_USER_env: "test_user"
+      DB_PASSWORD_env: "test_pass"
+      DB_HOST_env: "localhost"
+      DB_PORT_env: "5432"  # Le plus important pour éviter l'erreur int() !
+      DB_NAME_env: "test_db"
+      SECRET_KEY_env: "super-secret-key-for-testing-only"
+      ALGO_env: "HS256"
+      TOKEN_EXPIRE_env: "30"
+      cv_me_standard_env: "dummy.pdf"
 
     steps:
       - name: 📥 Checkout code
@@ -35,9 +42,6 @@ jobs:
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
-          # Explicitly install PyJWT and other core dependencies to bypass the error
           pip install PyJWT fastapi uvicorn sqlalchemy passlib bcrypt python-multipart openai sentence-transformers pytest httpx pydantic
-          # Attempt to install any remaining packages from requirements.txt
           pip install -r requirements.txt || true
-          # Run the tests immediately after installation
           pytest tests/ -v
