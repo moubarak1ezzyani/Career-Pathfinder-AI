@@ -16,6 +16,8 @@ from app.core.security import get_pwd_hash, verify_pwd, create_access_token, oau
 # Import AI engines
 from app.services.matching_engine import analyze_match
 from app.chatbot import generate_questions, evaluate_candidate
+# NEW: Import the video analysis service
+from app.services.video_analyzer import analyze_video_offline
 
 # Create database tables
 models.my_Base.metadata.create_all(bind=engine)
@@ -34,9 +36,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Local directory to save uploaded CVs
+# Local directories for uploads
 UPLOAD_DIR = "uploads/cvs"
+VIDEO_DIR = "uploads/videos" # Directory for video files
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(VIDEO_DIR, exist_ok=True)
 
 
 # ==========================================
@@ -69,11 +73,10 @@ def register(user: schemas.CandidatCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="This email is already in use")
     
-    # Create the account
+    # Create account
     hashed_pwd = get_pwd_hash(user.password)
-    # Use the first part of the email as the default name
+    # Use first part of email as default name
     default_name = user.email.split("@")[0] 
-    
     new_user = models.Candidat(email=user.email, hashed_pwd=hashed_pwd, name=default_name)
     
     db.add(new_user)
@@ -84,7 +87,6 @@ def register(user: schemas.CandidatCreate, db: Session = Depends(get_db)):
 @app.post("/login", response_model=schemas.Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(models.Candidat).filter(models.Candidat.email == form_data.username).first()
-    
     if not user or not verify_pwd(form_data.password, user.hashed_pwd):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
     
@@ -102,14 +104,14 @@ async def analyze_cv(
     file: UploadFile = File(...), 
     job_description: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
+    current_user: models.Candidat = Depends(get_current_user)
 ):
-    # 1. Physically save the PDF file
+    # Save the PDF file physically
     file_location = f"{UPLOAD_DIR}/{file.filename}"
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 2. Link the CV and job offer to the REAL authenticated candidate
+    # Link CV and job target to the authenticated candidate
     resume = models.Resume(candidat_id=current_user.id, file_path=file_location)
     job_target = models.JobTarget(candidat_id=current_user.id, description_text=job_description)
     db.add(resume)
@@ -118,11 +120,11 @@ async def analyze_cv(
     db.refresh(resume)
     db.refresh(job_target)
 
-    # 3. Call the AI engine
+    # Call AI engine
     result = analyze_match(cv_file_path=file_location, job_description=job_description)
 
     if result["status"] == "success":
-        # 4. Save the results
+        # Save results to DB
         match_result = models.MatchResults(
             resume_id=resume.id,
             job_target_id=job_target.id,
@@ -143,9 +145,9 @@ async def analyze_cv(
 async def generate_quiz(
     job_target_id: int = Form(...), 
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
+    current_user: models.Candidat = Depends(get_current_user)
 ):
-    # Security: verify that the job offer belongs to the authenticated candidate
+    # Security: verify job offer belongs to authenticated candidate
     job_target = db.query(models.JobTarget).filter(
         models.JobTarget.id == job_target_id, 
         models.JobTarget.candidat_id == current_user.id
@@ -176,9 +178,9 @@ async def generate_quiz(
 async def evaluate_interview(
     request: schemas.EvaluateInterviewRequest, 
     db: Session = Depends(get_db),
-    current_user: models.Candidat = Depends(get_current_user) # <-- Protected route!
+    current_user: models.Candidat = Depends(get_current_user)
 ):
-    # Security: verify that the session belongs to the candidate
+    # Security: verify session belongs to candidate
     session = db.query(models.InterviewSession).filter(
         models.InterviewSession.id == request.session_id,
         models.InterviewSession.candidat_id == current_user.id
@@ -187,10 +189,7 @@ async def evaluate_interview(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or access denied")
 
-    # Recreate the Pydantic object from the database
     questions_list = schemas.QuestionList(**{"questions": session.generated_questions["questions"]})
-
-    # AI grading
     evaluation_result = evaluate_candidate(questions_list, request.candidate_answers)
     
     # Update DB
@@ -198,7 +197,40 @@ async def evaluate_interview(
     session.candidate_answers = request.candidate_answers
     session.score_out_of_10 = evaluation_result.score_out_of_10
     session.evaluation_details = [ans.model_dump() for ans in evaluation_result.answer_details]
-    
     db.commit()
     
     return evaluation_result
+
+
+# --- 4. NEW: Video Analysis Route (Route 3) ---
+@app.post("/analyze-video")
+async def analyze_video(
+    file: UploadFile = File(...),
+    current_user: models.Candidat = Depends(get_current_user)
+):
+    # 1. Temporary video storage
+    video_path = f"{VIDEO_DIR}/{file.filename}"
+    with open(video_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    try:
+        # 2. Call the analysis service
+        analysis_result = analyze_video_offline(video_path)
+        
+        if "error" in analysis_result:
+            raise HTTPException(status_code=400, detail=analysis_result["error"])
+
+        # 3. Return the requested results
+        return {
+            "status": "success",
+            "candidate": current_user.name,
+            "vision_metrics": analysis_result
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during analysis: {str(e)}")
+    
+    finally:
+        # 4. Cleanup: remove video after processing
+        if os.path.exists(video_path):
+            os.remove(video_path)
