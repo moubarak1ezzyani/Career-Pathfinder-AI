@@ -20,6 +20,8 @@ TOKEN_EXPIRE = os.getenv("TOKEN_EXPIRE_env", "30")
 
 # Paths
 cv_me_standard = os.getenv("cv_me_standard_env", "dummy.pdf")
+vid_stress=os.getenv("vid_stress_env") 
+vid_normal=os.getenv("vid_normal_env")
 
 # AI models
 LLM_MODEL_NAME = "qwen2.5:3b" 
