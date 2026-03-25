@@ -1,5 +1,6 @@
-# Utiliser une image Node.js légère
-FROM node:18-alpine
+# Utiliser une image Node.js compatible avec Next.js 16+ (Node 20+)
+FROM node:20-alpine
+
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -16,6 +17,8 @@ COPY . .
 # Exposer le port 3001 (celui que tu utilises)
 EXPOSE 3001
 
-# Lancer l'application en mode développement (pratique pour voir les changements en direct)
-# Si tu veux la production, remplace par : RUN npm run build CMD ["npm", "start"]
-CMD ["npm", "run", "dev", "-p", "3001"]
+# Lancer l'application en mode développement
+CMD ["npm", "run", "dev", "--", "-p", "3001"]
+
+# Construire l'image (Build) : <sudo docker build -t career-pathfinder-frontend .>
+# Lancer le conteneur (Run) : <sudo docker run -d -p 3001:3001 --name frontend-app career-pathfinder-frontend>

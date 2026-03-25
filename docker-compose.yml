@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. LA BASE DE DONNÉES POSTGRESQL
+  # 1. DATABASE
   db:
     image: postgres:15-alpine
     container_name: career_db
@@ -14,8 +14,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - career-network
 
-  # 2. LE BACKEND FASTAPI
+  # 2. BACKEND (FastAPI)
   backend:
     build: 
       context: ./backend
@@ -25,15 +27,22 @@ services:
     ports:
       - "8001:8001"
     environment:
-      # L'URL de connexion à la base de données (Note que l'hôte est "db", le nom du service au-dessus !)
-      - DATABASE_URL=postgresql://admin:password123@db:5432/career_db
+      - DB_USER_env=admin
+      - DB_PASSWORD_env=password123
+      - DB_HOST_env=db
+      - DB_PORT_env=5432
+      - DB_NAME_env=career_db
+      - OLLAMA_URL=http://host.docker.internal:11434/v1
     depends_on:
       - db
-    # Permet au backend de communiquer avec l'Ollama qui tourne sur ton PC physique
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/uploads:/backend/uploads
+    networks:
+      - career-network
 
-  # 3. LE FRONTEND NEXT.JS
+  # 3. FRONTEND (Next.js)
   frontend:
     build: 
       context: ./frontend
@@ -43,11 +52,15 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # Indique au frontend où joindre le backend
       - NEXT_PUBLIC_API_URL=http://localhost:8001
     depends_on:
       - backend
+    networks:
+      - career-network
 
-# Déclaration du volume pour sauvegarder les données de la base de données même si on coupe Docker
+networks:
+  career-network:
+    driver: bridge
+
 volumes:
   postgres_data:
