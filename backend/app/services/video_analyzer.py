@@ -1,7 +1,10 @@
 import cv2
 import os
+import sys
 from deepface import DeepFace
 from collections import Counter
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from app.core.config import vid_stress
 
 def analyze_video_offline(video_path):
     # Vérifier si le fichier existe
@@ -80,7 +83,7 @@ def analyze_video_offline(video_path):
 # --- TEST DU SCRIPT ---
 if __name__ == "__main__":
     # Remplacez par le chemin de votre vidéo locale pour tester
-    PATH_TO_VIDEO = "votre_video.mp4" 
+    PATH_TO_VIDEO = vid_stress
     
     result = analyze_video_offline(PATH_TO_VIDEO)
     
