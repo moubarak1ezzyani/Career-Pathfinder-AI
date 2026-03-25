@@ -153,3 +153,5 @@ def test_route_2_chatbot(mock_evaluate_candidate, mock_generate_questions):
     # LA CORRECTION EST ICI : on utilise le vrai nom de ta colonne
     assert updated_session.score_out_of_10 is not None
     db.close()
+
+# cmd : pytest tests/ -v    
