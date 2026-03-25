@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { useAuth } from "./context/AuthContext";
 import { fetchWithAuth } from "./utils/api";
-import { Upload, Play, CheckCircle, AlertCircle, Loader2, LogOut, Sparkles } from 'lucide-react';
+import { Upload, Play, CheckCircle, AlertCircle, Loader2, LogOut, Sparkles, Video, Activity } from 'lucide-react';
 
 export default function HomePage() {
   const { isAuthenticated, logout, loading: authLoading } = useAuth();
@@ -24,6 +24,11 @@ export default function HomePage() {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [loadingEval, setLoadingEval] = useState(false);
+  
+  // --- States pour l'Analyse Vidéo ---
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoAnalysis, setVideoAnalysis] = useState<any>(null);
+  const [loadingVideo, setLoadingVideo] = useState(false);
 
   // 1. Action : Analyser le CV (/analyze)
   const handleAnalyze = async (e: React.FormEvent) => {
@@ -108,6 +113,32 @@ export default function HomePage() {
     }
   };
 
+  // 4. Action : Analyser la Vidéo (/analyze-video)
+  const handleVideoAnalyze = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoFile) return alert("Vidéo requise !");
+    
+    setLoadingVideo(true);
+    const formData = new FormData();
+    formData.append('file', videoFile);
+
+    try {
+      const res = await fetchWithAuth("/analyze-video", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Erreur lors de l'analyse vidéo");
+      
+      const data = await res.json();
+      setVideoAnalysis(data.vision_metrics);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoadingVideo(false);
+    }
+  };
+
   if (authLoading) return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-blue-600" size={48} /></div>;
 
   // ==========================================
@@ -154,7 +185,7 @@ export default function HomePage() {
           </button>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* GAUCHE: ANALYSE CV */}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
@@ -281,6 +312,82 @@ export default function HomePage() {
             )}
           </section>
 
+          {/* ÉTAPE 3: ANALYSE VIDÉO */}
+          <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+            <div className="flex items-center gap-2 text-indigo-600 font-bold uppercase text-xs tracking-widest">
+              <Video size={16} /> <span>Étape 3: Analyse de Performance</span>
+            </div>
+            
+            <form onSubmit={handleVideoAnalyze} className="space-y-4">
+              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-indigo-400 transition-colors">
+                <input 
+                  type="file" 
+                  accept="video/*"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700"
+                />
+              </div>
+              <button 
+                disabled={loadingVideo}
+                className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 disabled:bg-indigo-300 flex justify-center items-center gap-2 shadow-lg shadow-indigo-200"
+              >
+                {loadingVideo ? <Loader2 className="animate-spin" /> : "Lancer l'Analyse Vidéo"}
+              </button>
+            </form>
+
+            {videoAnalysis && (
+              <div className="mt-6 space-y-4">
+                <div className="p-6 bg-slate-900 text-white rounded-2xl">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <div className="text-xs opacity-60 uppercase font-bold">Émotion Dominante</div>
+                      <div className="text-2xl font-black">{videoAnalysis.emotion_dominant}</div>
+                    </div>
+                    <Activity size={32} className="text-indigo-400" />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Confiance</span>
+                        <span>{videoAnalysis.confidence_score}</span>
+                      </div>
+                      <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-emerald-400 h-full transition-all duration-1000" 
+                          style={{ width: videoAnalysis.confidence_score }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Stress</span>
+                        <span>{videoAnalysis.stress_score}</span>
+                      </div>
+                      <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div 
+                        className="bg-rose-400 h-full transition-all duration-1000" 
+                        style={{ width: videoAnalysis.stress_score }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-sm text-indigo-700">
+                  <p className="font-semibold flex items-center gap-2">
+                    <Sparkles size={16} /> Conseil IA:
+                  </p>
+                  <p className="mt-1">
+                    {parseInt(videoAnalysis.stress_score) > 40 
+                      ? "Respire profondément. Ton score de stress est un peu élevé. Essaie de ralentir ton débit de parole."
+                      : "Excellent ! Tu dégages une grande confiance. Continue sur cette lancée."}
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </main>
