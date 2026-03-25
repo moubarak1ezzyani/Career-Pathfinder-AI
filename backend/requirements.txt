@@ -25,3 +25,7 @@ openai                     # Pour la connexion au client Ollama en local
 # --- Tests ---
 pytest
 httpx                      # Requis par FastAPI pour les tests (TestClient)
+# --- Video Analysis ---
+opencv-python-headless
+deepface
+tf-keras
