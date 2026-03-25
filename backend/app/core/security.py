@@ -12,7 +12,10 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login') 
 
 def get_pwd_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Truncate to 72 characters to avoid "ValueError: password cannot be longer than 72 bytes"
+    # Bcrypt only considers the first 72 bytes anyway.
+    return pwd_context.hash(password[:72])
+
 
 def verify_pwd(plain_pwd: str, hash_pwd: str) -> bool:
     return pwd_context.verify(plain_pwd, hash_pwd)
