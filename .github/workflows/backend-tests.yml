@@ -15,18 +15,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    # On injecte des fausses variables pour satisfaire config.py
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      DB_USER_env: "test_user"
-      DB_PASSWORD_env: "test_pass"
-      DB_HOST_env: "localhost"
-      DB_PORT_env: "5432"  # Le plus important pour éviter l'erreur int() !
-      DB_NAME_env: "test_db"
-      SECRET_KEY_env: "super-secret-key-for-testing-only"
-      ALGO_env: "HS256"
-      TOKEN_EXPIRE_env: "30"
-      cv_me_standard_env: "dummy.pdf"
 
     steps:
       - name: 📥 Checkout code
@@ -44,4 +34,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyJWT fastapi uvicorn sqlalchemy passlib bcrypt python-multipart openai sentence-transformers pytest httpx pydantic
           pip install -r requirements.txt || true
+          
+          # INJECTION FORCÉE DANS LE TERMINAL
+          export DB_USER_env="test_user"
+          export DB_PASSWORD_env="test_pass"
+          export DB_HOST_env="localhost"
+          export DB_PORT_env="5432"
+          export DB_NAME_env="test_db"
+          export SECRET_KEY_env="super-secret-key-for-testing-only"
+          export ALGO_env="HS256"
+          export TOKEN_EXPIRE_env="30"
+          export cv_me_standard_env="dummy.pdf"
+          
+          # Lancement des tests
           pytest tests/ -v
