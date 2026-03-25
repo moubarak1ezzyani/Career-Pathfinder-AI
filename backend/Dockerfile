@@ -27,12 +27,11 @@ EXPOSE 8001
 # Commande pour démarrer l'application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
 
-"
-Construire l'image Docker (ça peut prendre quelques minutes la première fois) :
 
-<docker build -t career-pathfinder-backend .>
------------------------------------------------
-Démarrer le conteneur :
+# Construire l'image Docker (ça peut prendre quelques minutes la première fois) :
 
-<docker run -d -p 8001:8001 --name backend-ai career-pathfinder-backend>    
-"
+# <docker build -t career-pathfinder-backend .>
+# -----------------------------------------------
+# Démarrer le conteneur :
+
+# <docker run -d -p 8001:8001 --name backend-ai career-pathfinder-backend>    
