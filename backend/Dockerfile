@@ -5,10 +5,11 @@ FROM python:3.10-slim
 WORKDIR /backend
 
 # Installer les dépendances système nécessaires (ex: pour compiler certains packages ou psycopg2)
+# Remplacement de libgl1-mesa-glx par libgl1 pour éviter l'erreur d'installation
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,4 +37,4 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
 # -----------------------------------------------
 # Démarrer le conteneur :
 
-# <docker run -d -p 8001:8001 --name backend-ai career-pathfinder-backend>    
+# <docker run -d -p 8001:8001 --name backend-ai career-pathfinder-backend>
