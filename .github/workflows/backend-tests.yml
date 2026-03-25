@@ -15,9 +15,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -28,23 +25,22 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: 🚀 Force Install Dependencies & Run Tests
+      - name: 💉 Inject Native GitHub Environment Variables
+        run: |
+          echo "DB_USER_env=test_user" >> $GITHUB_ENV
+          echo "DB_PASSWORD_env=test_pass" >> $GITHUB_ENV
+          echo "DB_HOST_env=localhost" >> $GITHUB_ENV
+          echo "DB_PORT_env=5432" >> $GITHUB_ENV
+          echo "DB_NAME_env=test_db" >> $GITHUB_ENV
+          echo "SECRET_KEY_env=super-secret-key-for-testing-only" >> $GITHUB_ENV
+          echo "ALGO_env=HS256" >> $GITHUB_ENV
+          echo "TOKEN_EXPIRE_env=30" >> $GITHUB_ENV
+          echo "cv_me_standard_env=dummy.pdf" >> $GITHUB_ENV
+
+      - name: 🚀 Install Dependencies & Run Tests
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
           pip install PyJWT fastapi uvicorn sqlalchemy passlib bcrypt python-multipart openai sentence-transformers pytest httpx pydantic python-dotenv
           pip install -r requirements.txt || true
-          
-          # CRÉATION D'UN VRAI FAUX FICHIER .ENV SUR LE SERVEUR
-          echo "DB_USER_env=test_user" > .env
-          echo "DB_PASSWORD_env=test_pass" >> .env
-          echo "DB_HOST_env=localhost" >> .env
-          echo "DB_PORT_env=5432" >> .env
-          echo "DB_NAME_env=test_db" >> .env
-          echo "SECRET_KEY_env=super-secret-key-for-testing-only" >> .env
-          echo "ALGO_env=HS256" >> .env
-          echo "TOKEN_EXPIRE_env=30" >> .env
-          echo "cv_me_standard_env=dummy.pdf" >> .env
-          
-          # Lancement des tests (maintenant, load_dotenv() va trouver le fichier !)
           pytest tests/ -v
