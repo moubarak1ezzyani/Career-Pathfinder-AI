@@ -1,264 +1,167 @@
 # 🚀 Career Pathfinder AI
 
-**Career Pathfinder AI** est une plateforme intelligente conçue pour optimiser la préparation aux entretiens d'embauche. Elle combine le **Traitement du Langage Naturel (NLP)**, la **Génération Augmentée par Récupération (RAG)** et la **Vision par Ordinateur**.
+[![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js Version](https://img.shields.io/badge/next.js-15+-black.svg)](https://nextjs.org/)
+[![FastAPI Version](https://img.shields.io/badge/fastapi-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-## 🌟 Fonctionnalités Clés
-- **📄 CV Scoring (NLP) :** Analyse sémantique et calcul de compatibilité (Cosine Similarity) entre un CV et une offre.
-- **💬 Interview Coach (RAG) :** Chatbot contextuel (Groq/Llama3) qui simule un recruteur technique basé sur l'offre réelle.
-- **👁️ Analyse Comportementale (Vision) :** Détection des émotions et du stress via webcam durant l'entretien (DeepFace).
+**Career Pathfinder AI** est une plateforme intelligente de préparation aux entretiens d'embauche propulsée par l'Intelligence Artificielle. Elle permet d'analyser la compatibilité des CV, de s'entraîner via un simulateur d'entretien interactif et d'obtenir un feedback comportemental (émotions et stress) grâce à l'analyse vidéo.
 
-## 🛠️ Stack Technique
-- **Backend :** FastAPI, Python
-- **Frontend :** React.js / Next.js 
-- **AI/ML :** LangChain, ChromaDB, Sentence-Transformers, DeepFace
+---
 
-## 📂 Structure recommandée :
+## 🌟 Fonctionnalités Principales (Features)
+
+- **📄 Analyse de CV & Matching AI** : Extraction automatique de texte (PDFPlumber) et calcul de similarité sémantique (Sentence-Transformers) entre votre profil et une offre d'emploi.
+- **💬 Simulateur d'Entretien Interactif** : Génération de questions techniques personnalisées basées sur l'offre et votre CV, utilisant le modèle **Qwen 2.5** via Ollama.
+- **👁️ Analyse de Performance Vidéo** : Détection des émotions dominantes et mesure du niveau de stress/confiance en temps réel via Webcam (**DeepFace** & **OpenCV**).
+- **📊 Rapport de Progression** : Feedbacks détaillés, scores de match, et conseils IA pour améliorer vos prestations.
+- **🐳 Architecture Conteneurisée** : Déploiement simplifié de l'ensemble de la stack (Frontend, Backend, DB) via Docker Compose.
+
+---
+
+## 🛠️ Stack Technique (Tech Stack)
+
+### **Frontend**
+- **Framework** : [Next.js 15+](https://nextjs.org/) (App Router)
+- **Styling** : Vanilla CSS & Modern Design Patterns
+- **Icons** : Lucide React
+
+### **Backend**
+- **Framework** : [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10)
+- **ORM** : SQLAlchemy
+- **Database** : PostgreSQL 15
+
+### **Intelligence Artificielle**
+- **LLM** : Qwen 2.5 (via [Ollama](https://ollama.com/))
+- **Embeddings** : Sentence-Transformers (`all-MiniLM-L6-v2`)
+- **Computer Vision** : DeepFace, OpenCV, TensorFlow
+- **NLP/Parsing** : PDFPlumber
+
+### **DevOps**
+- **Containerization** : Docker, Docker Compose
+
+---
+
+## 📋 Prérequis (Prerequisites)
+
+- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/)
+- [Git](https://git-scm.com/)
+- [Ollama](https://ollama.com/) (installé sur la machine hôte pour faire tourner les modèles locaux)
+
+---
+
+## 🔑 Variables d'Environnement (Environment Variables)
+
+Créez un fichier `.env` à la racine du projet en vous basant sur l'exemple suivant :
+
+```env
+# Database Configuration
+DB_USER_env=postgres
+DB_PASSWORD_env=votre_mot_de_passe
+DB_HOST_env=db
+DB_PORT_env=5432
+DB_NAME_env=career_db
+
+# Security
+SECRET_KEY_env="votre_cle_secrete_ultra_longue"
+ALGO_env="HS256"
+TOKEN_EXPIRE_env=30
+
+# AI Models Connectivity
+OLLAMA_URL=http://host.docker.internal:11434/v1
+```
+
+---
+
+## 🚀 Installation et Démarrage (Getting Started)
+
+1. **Cloner le projet** :
+   ```bash
+   git clone https://github.com/votre-repo/career-pathfinder-ai.git
+   cd career-pathfinder-ai
+   ```
+
+2. **Lancer Ollama** (Sur votre machine hôte) :
+   ```bash
+   ollama run qwen2.5:3b
+   ```
+
+3. **Démarrer avec Docker Compose** :
+   ```bash
+   docker-compose up --build -d
+   ```
+
+---
+
+## 💻 Utilisation (Usage)
+
+- **Application Web (Frontend)** : [http://localhost:3001](http://localhost:3001)
+- **API Backend** : [http://localhost:8001](http://localhost:8001)
+- **Documentation Interactive (SwaggerUI)** : [http://localhost:8001/docs](http://localhost:8001/docs)
+
+---
+
+## 📂 Structure du Projet (Détaillée)
 
 ```plaintext
-career-pathfinder-ai/
-│
-├── 📜 README.md
-├── 🐳 docker-compose.yml
-├── 🙈 .gitignore
-│
-├── 📂 backend/
-│   ├── 📄 Dockerfile
-│   ├── 📄 requirements.txt
+Career-Pathfinder-AI/
+├── 📂 backend/                  # Serveur FastAPI et services AI
 │   ├── 📂 app/
-│   │   ├── 🐍 main.py
-│   │   ├── 📂 api/
-│   │   │   ├── 🐍 endpoints.py      # Les 4 routes seront exposées ici
-│   │   │   └── 🐍 models.py         # Schémas de données (Scores, Messages, Émotions)
-│   │   │
-│   │   ├── 📂 core/                 # Configuration (Groq, BDD)
-│   │   │
-│   │   ├── 📂 services/             # 🧠 TOUTE LA LOGIQUE MÉTIER
-│   │   │   ├── 🐍 document_parser.py    # (Base) Extraction PDF
-│   │   │   ├── 🐍 matching_engine.py    # (Route 1) Calcul de similarité CV/Offre
-│   │   │   ├── 🐍 cover_letter_gen.py   # (Route 2) Génération par RAG
-│   │   │   ├── 🐍 interview_chatbot.py  # (Route 3) Q&A LLM (Hard Skills)
-│   │   │   └── 🐍 video_analyzer.py     # (Route 4) DeepFace (Soft Skills)
-│   │   │
-│   │   └── 📂 utils/
-│   │       └── 🐍 file_helpers.py   # Gestion des fichiers temporaires
-│   │
-│   ├── 📂 data/
-│   │   └── 📂 chromadb/
-│   └── 📂 tests/
-│       ├── 🐍 test_api.py
-│       └── 🐍 test_services.py
-│
-├── 📂 frontend/
-│   ├── 📄 package.json
-│   ├── 📂 src/
-│   │   ├── 📂 components/
-│   │   │   ├── ⚛️ UploadArea.jsx
-│   │   │   ├── ⚛️ ChatWindow.jsx        # Pour la Route 3
-│   │   │   └── ⚛️ WebcamAnalyzer.jsx    # Composant prêt pour la Route 4
-│   │   ├── 📂 pages/
-│   │   │   ├── ⚛️ Dashboard.jsx         # Résultat Route 1 (Matching)
-│   │   │   ├── ⚛️ ApplicationPrep.jsx   # Résultat Route 2 (Lettre)
-│   │   │   └── ⚛️ Simulator.jsx         # Routes 3 & 4 combinées (Chat + Vidéo)
-│   │   └── 📜 App.jsx
-│
-└── 📂 notebooks/
-    ├── 📓 01_matching_logic.ipynb
-    ├── 📓 02_rag_prompts.ipynb
-    └── 📓 03_deepface_tests.ipynb
+│   │   ├── 📂 api/             # Modèles de données & Base de données
+│   │   │   ├── 🐍 database.py   # Initialisation de SQLAlchemy & Connexion DB
+│   │   │   ├── 🐍 models.py     # Définition des tables ORM (Candidats, CV, Match)
+│   │   │   └── 🐍 schemas.py    # Modèles Pydantic pour l'entrée/sortie API
+│   │   ├── 📂 core/            # Configuration et Sécurité
+│   │   │   ├── 🐍 config.py     # Chargement des variables .env & Defaults
+│   │   │   ├── 🐍 security.py   # Gestion JWT, Hashing de mots de passe
+│   │   │   └── 🐍 prompts.py    # Centralisation des templates de prompts LLM
+│   │   ├── 📂 services/       # Moteurs d'Intelligence Artificielle
+│   │   │   ├── 🐍 matching_engine.py  # Calcul NLP de similarité CV/Offre
+│   │   │   ├── 🐍 video_analyzer.py   # Traitement OpenCV & DeepFace (Émotions)
+│   │   │   └── 🐍 document_parser.py  # Extraction de contenu PDF (PDFPlumber)
+│   │   ├── 🐍 chatbot.py        # Logique de génération de quiz (Qwen 2.5)
+│   │   └── 🐍 main.py           # Point d'entrée FastAPI & Définition des routes
+│   ├── 📄 requirements.txt      # Liste des dépendances Python
+│   └── 📄 Dockerfile            # Image Docker pour le Backend
+├── 📂 frontend/                 # Interface Utilisateur Next.js
+│   ├── 📂 app/
+│   │   ├── 📂 context/         # Gestion d'état globale
+│   │   │   └── ⚛️ AuthContext.tsx  # Contexte d'authentification utilisateur
+│   │   ├── 📂 utils/           # Fonctions utilitaires
+│   │   │   └── ⚛️ api.ts          # Client Fetch pré-configuré avec JWT
+│   │   ├── 📂 login/           # Pages de connexion (Auth)
+│   │   │   └── ⚛️ page.tsx
+│   │   ├── 📂 register/        # Pages d'inscription (Auth)
+│   │   │   └── ⚛️ page.tsx
+│   │   ├── ⚛️ layout.tsx         # Squelette global & Polices (Inter)
+│   │   ├── ⚛️ globals.css        # Styles CSS globaux
+│   │   └── ⚛️ page.tsx           # Dashboard principal (Matching, Quiz & Vidéo)
+│   ├── 📄 package.json          # Dépendances Node.js & Scripts
+│   ├── 📄 next.config.ts        # Configuration du framework Next.js
+│   └── 📄 Dockerfile            # Image Docker pour le Frontend
+├── 📄 docker-compose.yml        # Orchestration (Postgres + Backend + Frontend)
+└── 📄 .env                      # Configuration des clés et ports (local)
 ```
-
-## branchs :
-`
-feature/route1-matching-engine (On remplit document_parser.py et matching_engine.py).
-
-feature/route2-cover-letter (On remplit cover_letter_gen.py).
-
-feature/route3-chatbot (On remplit interview_chatbot.py).
-
-feature/route4-video-analysis (On remplit video_analyzer.py et on active le composant Webcam sur le Front).
-`
-***
-## Cartographie du projet
-
-
-### 📍 Le Point de Départ (Le Tronc Commun)
-
-**Action Utilisateur :** "Upload a CV (PDF)"
-
-* **Ce qui se passe en coulisse (Backend) :** Votre API (FastAPI) reçoit le PDF. Le script `pdf_parser.py` lit le texte, le découpe, et le transforme en vecteurs mathématiques (Embeddings) stockés dans votre base de données ChromaDB.
-* **L'état de l'app :** L'IA "connaît" maintenant le candidat.
-
-À partir de là, l'utilisateur a un menu devant lui et doit choisir sa Route.
 
 ---
 
-### 🛣️ Route 1 : L'Audit de Carrière (Le cœur ML / MVP)
+## 🔌 API Reference (Aperçu)
 
-*L'objectif ici est de savoir si le candidat a le niveau pour un poste précis.*
-
-* **L'action :** L'utilisateur colle le texte d'une "Offre d'Emploi de ses rêves" (Job Description) dans un champ texte.
-* **La Machine :** L'IA vectorise cette offre et calcule la **similarité cosinus** entre le CV et l'offre.
-* **Le Résultat Final (Dashboard) :**
-* Un score global de compatibilité (ex: **78%**).
-* Un "Gap Analysis" : Les compétences que le candidat possède vs celles qui lui manquent (ex: *"Il vous manque la compétence Docker demandée dans l'offre"*).
-
-
-
-### 🛣️ Route 2 : L'Assistant Candidature (L'extension RAG n°1)
-
-*L'objectif est d'accélérer la postulation.*
-
-* **L'action :** L'utilisateur clique sur "Générer une lettre de motivation".
-* **La Machine :** Le système prend le CV stocké, l'offre d'emploi, et les envoie au LLM (Groq/Llama3) avec un prompt strict : *"Agis comme ce candidat et rédige une lettre pour ce poste"*.
-* **Le Résultat Final :** Un texte professionnel généré à l'écran, prêt à être copié/collé ou exporté en PDF.
-
-### 🛣️ Route 3 : Le Simulateur d'Entretien Technique (L'extension RAG n°2)
-
-*L'objectif est de s'entraîner aux "Hard Skills".*
-
-* **L'action :** L'utilisateur lance un "Mock Interview" en mode Chat texte.
-* **La Machine :** Le LLM analyse le CV et l'offre d'emploi, se met dans la peau du recruteur, et pose une question ciblée (ex: *"Je vois que vous avez fait du Python, comment géreriez-vous une API lente ?"*).
-* **Le Résultat Final :** Une interface de Chatbot classique où l'utilisateur tape ses réponses et reçoit du feedback en direct.
-
-### 🛣️ Route 4 : Le Crash-Test Multimodal (La Vision Future / Le "Wow Effect")
-
-*C'est la version avancée de la Route 3, centrée sur les "Soft Skills".*
-
-* **L'action :** L'utilisateur active sa webcam et son micro pour répondre aux questions de l'IA à l'oral.
-* **La Machine :**
-* Le son est converti en texte (Speech-to-Text).
-* La vidéo est analysée en temps réel par **DeepFace** (capture des émotions et du regard).
-
-
-* **Le Résultat Final :** Un rapport de fin d'entretien détaillant le niveau de stress, la confiance en soi perçue (analyse faciale), et la clarté de la communication (analyse textuelle).
+| Méthode | Route | Description |
+| :--- | :--- | :--- |
+| `POST` | `/register` | Inscription d'un nouveau candidat |
+| `POST` | `/login` | Authentification (retourne un JWT Token) |
+| `POST` | `/analyze` | Analyse et Scoring du CV vs une Offre |
+| `POST` | `/generate-quiz` | Génération des questions d'entretien |
+| `POST` | `/evaluate-interview` | Évaluation des réponses du candidat |
+| `POST` | `/analyze-video` | Analyse faciale (émotions/stress) de la vidéo |
 
 ---
 
-### 🗺️ Résumé Visuel du Parcours (Arborescence)
+## ⚖️ Licence et Auteurs
 
-```text
-[ 📄 Upload du CV PDF ]  <-- Point de départ obligatoire
-          |
-          | (Choix de l'utilisateur sur l'interface)
-          |
-          +---> 1. "Est-ce que je matche ?" ---> [Matching Cosinus] ---> Jauge & Compétences manquantes
-          |
-          +---> 2. "Aide-moi à postuler"    ---> [RAG Texte]        ---> Lettre de motivation générée
-          |
-          +---> 3. "Entraîne-moi (Texte)"   ---> [RAG Chatbot]      ---> Chat interactif Q&A
-          |
-          +---> 4. "Entraîne-moi (Vidéo)"   ---> [Vision + RAG]     ---> Dashboard Stress & Soft Skills
+- **Auteur** : Moubarak EZ-ZYANI
+- **Licence** : Ce projet est sous licence MIT.
 
-```
-
-### 💡 Mon conseil stratégique pour votre soutenance
-
-Vous n'êtes **pas obligé** de faire les 4 routes parfaitement pour le 16 mars.
-Si vous manquez de temps, la **Route 1** (Le Matching) et la **Route 3** (Le Chatbot) constituent déjà un projet d'ingénierie IA extrêmement solide et complet. La Route 4 est la "cerise sur le gâteau".
-
-Voulez-vous qu'on choisisse ensemble quelles routes vous allez officiellement intégrer dans votre MVP (Produit Minimum Viable) pour garantir la réussite de votre présentation ?
-
-## schéma de base de données
-👤 1. Le Socle (Utilisateur & Données de base)
-
-Table : users (Le candidat)
-
-    id (UUID, Primary Key)
-
-    email (String, Unique)
-
-    name (String)
-
-    created_at (Timestamp)
-
-Table : resumes (Le CV uploadé)
-
-    id (UUID, Primary Key)
-
-    user_id (UUID, Foreign Key)
-
-    file_path (String) -> Le chemin local où le PDF est sauvegardé.
-
-    raw_text (Text) -> Le texte brut extrait du PDF.
-
-    uploaded_at (Timestamp)
-
-Table : job_targets (Les offres d'emploi ciblées)
-
-    id (UUID, Primary Key)
-
-    user_id (UUID, Foreign Key)
-
-    title (String) -> Ex: "Développeur Python Junior"
-
-    description_text (Text) -> Le texte collé par l'utilisateur.
-
-    created_at (Timestamp)
-
-🛣️ 2. Tables pour les Fonctionnalités (Les 4 Routes)
-
-Table : match_results (Route 1 : L'Audit de Carrière)
-
-    id (UUID, Primary Key)
-
-    resume_id (UUID, Foreign Key)
-
-    job_target_id (UUID, Foreign Key)
-
-    overall_score (Float) -> Ex: 78.5 (%)
-
-    missing_skills (JSON) -> Ex: ["Docker", "CI/CD", "AWS"]
-
-    analyzed_at (Timestamp)
-
-Table : cover_letters (Route 2 : L'Assistant Candidature)
-
-    id (UUID, Primary Key)
-
-    resume_id (UUID, Foreign Key)
-
-    job_target_id (UUID, Foreign Key)
-
-    generated_content (Text) -> La lettre rédigée par le LLM.
-
-    created_at (Timestamp)
-
-Table : interview_sessions (Routes 3 & 4 : Le Simulateur global)
-
-    id (UUID, Primary Key)
-
-    user_id (UUID, Foreign Key)
-
-    job_target_id (UUID, Foreign Key) -> Pour savoir sur quel poste l'IA doit l'interroger.
-
-    status (String) -> Ex: "in_progress", "completed"
-
-    started_at (Timestamp)
-
-    ended_at (Timestamp, Nullable)
-
-Table : interview_messages (Route 3 : Historique du Chatbot)
-
-    id (UUID, Primary Key)
-
-    session_id (UUID, Foreign Key)
-
-    sender (String) -> Doit être 'user' (candidat) ou 'ai' (recruteur).
-
-    content (Text) -> Le texte du message.
-
-    created_at (Timestamp)
-
-Table : soft_skills_evaluations (Route 4 : Le rapport final DeepFace/Vidéo)
-
-    id (UUID, Primary Key)
-
-    session_id (UUID, Foreign Key)
-
-    stress_score (Float) -> Calculé via DeepFace.
-
-    confidence_score (Float)
-
-    communication_score (Float) -> Calculé par le LLM sur la base des tics de langage.
-
-    emotional_timeline (JSON) -> Ex: [{"time": "00:10", "emotion": "fear"}, ...] (Utile pour tracer un graphique sur le front-end à la fin).
+---
+*Projet réalisé dans le cadre du développement d'une solution IA complète pour l'orientation professionnelle.*
