@@ -4,15 +4,18 @@
 **/.venv/
 **/*.pyc
 
-#data
+# Data & Uploads
 data/
-uploads
-test_database.db
+**/uploads/
+**/test_database.db
+*.sqlite3
 
 # Node dependencies
 **/node_modules/
 **/dist/
 **/.next/
+**/build/
+**/out/
 
 # Environment & Secrets
 .env
@@ -24,3 +27,7 @@ test_database.db
 # OS files
 .DS_Store
 Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
