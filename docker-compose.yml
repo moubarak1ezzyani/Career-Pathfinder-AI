@@ -7,7 +7,7 @@ services:
     container_name: career_db
     restart: always
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: career_db
     ports:
@@ -27,7 +27,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - DB_USER_env=admin
+      - DB_USER_env=postgres
       - DB_PASSWORD_env=password123
       - DB_HOST_env=db
       - DB_PORT_env=5432
